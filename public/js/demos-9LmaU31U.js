@@ -1,0 +1,1 @@
+const t="正在下载",e="下载管理",n={about:"关于",antdv:"Ant Design Vue 版本",document:"文档","element-plus":"Element Plus 版本","naive-ui":"Naive UI 版本",title:"项目"},s={antd:t,title:e,vben:n};export{t as antd,s as default,e as title,n as vben};

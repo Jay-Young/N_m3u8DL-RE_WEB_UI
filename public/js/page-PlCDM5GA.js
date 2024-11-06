@@ -1,0 +1,1 @@
+const o={codeLogin:"验证码登录",forgetPassword:"忘记密码",login:"登录",qrcodeLogin:"二维码登录",register:"注册"},a={analytics:"分析页",title:"概览",workspace:"下载完成",downerror:"下载失败",adddown:"新建下载",alldown:"全部任务",downset:"下载配置",about:"关于"},d={auth:o,dashboard:a};export{o as auth,a as dashboard,d as default};

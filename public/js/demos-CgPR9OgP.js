@@ -1,0 +1,1 @@
+const e="Downloading",n="Download Management",t={about:"About",antdv:"Ant Design Vue Version",document:"Document","element-plus":"Element Plus Version","naive-ui":"Naive UI Version",title:"Project"},o={antd:e,title:n,vben:t};export{e as antd,o as default,n as title,t as vben};

@@ -22,3 +22,15 @@ VITE_GLOB_WEB_TITLE:<span style="color:red;">m3u8DL_console</span>
 3. npm install
 4. npm start
 
+API接口可以给油猴脚本或者插件使用
+接口地址：http://localhost:3599/download
+post参数:
+title,
+url,
+retrycounts,
+saveFilePaths,
+setbinaryMeMrges,
+setdecryptions,
+threadCountss
+参数可以只给title和url，其它参数于预先设置好就行
+

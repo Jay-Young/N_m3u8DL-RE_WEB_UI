@@ -34,3 +34,4 @@ setdecryptions,
 threadCountss
 参数可以只给title和url，其它参数于预先设置好就行
 需要更多参数的自己加进去就行
+<img src="https://github.com/aidenconst/N_m3u8DL-RE_WEB_UI/blob/d67176fb2682ad3c1b1a7d9f82a65b2f3e8946aa/1.PNG">

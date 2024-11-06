@@ -67,11 +67,11 @@ var worker;
 const wsport = configData.wsport || 3600;
 const clients = [];// 保存所有连接的客户端
 //下载信息默认配置
-var saveFile = configData.saveFile || '/volume2/video/HSCK';//保存目录 /volume2/video/正版91porn/91porn
-var tempDir = configData.tempDir || '/volume2/Download/downTemp';//零时目录
+var saveFile = configData.saveFile || '/volume1/video/';//保存目录
+var tempDir = configData.tempDir || '/volume1/Download/downTemp';//零时目录
 var threadCount = configData.threadCount || 12;//线程数
 var retrycount = configData.retrycount || 5;//分片下载重试次数
-var ffmpegPath = configData.ffmpegPath || '/volume2/DOWN/profile/ffmpeg/ffmpeg';//指定ffmpeg路径  /volume2/DOWN/profile/ffmpeg/ffmpeg
+var ffmpegPath = configData.ffmpegPath || '/volume1/profile/ffmpeg/ffmpeg';//指定ffmpeg路径 
 var binaryMeMrge = configData.binaryMeMrge || true; //是否二进制合并
 var mp4RealTimeDecryption = configData.mp4RealTimeDecryption || true; //是否实时解密MP4分片
 /**json操作**/

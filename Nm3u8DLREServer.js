@@ -283,8 +283,6 @@ function downloadM3U8(
   id,
   tsFileIsSave,
   url,
-  file,
-  fileTs,
   title,
   wsMsg,
   tempInfo,
@@ -380,7 +378,7 @@ function downloadM3U8(
   });
   // 监听进程关闭,下载完成
   m3u8DLArgsProcess.on("close", async (code) => {
-      console.log(`下载完成！-->文件保存至:${file}`);
+      console.log(`下载完成！-->文件保存至:${tempInfo.saveFilePaths || saveFile}`);
       wsMsg.code = 200;
       wsMsg.msg = "下载完成！";
       wsMsg.info = {
@@ -462,8 +460,6 @@ function downloadMain(task, parentPorts) {
           id,
           tsFileIsSave,
           url,
-          file,
-          fileTs,
           title,
           wsMsg,
           tempInfo,

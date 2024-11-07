@@ -25,14 +25,14 @@ API接口可以给油猴脚本或者插件使用
 ###API下载参数
 参数  | 描述  | 是否必要参数
  ---- | ----- | ------  
-title  | 保存文件名 | 必要参数
-url  | 下载链接 | 必要参数
-imgUrl  | 封面图链接 | 非必要参数
-retrycounts  | 重试次数 | 非必要参数
-saveFilePaths  | 保存路径 | 非必要参数
-setbinaryMeMrges  | 是否二进制合并 | 非必要参数
-setdecryptions  | 是否实时解码分片 | 非必要参数
-threadCountss  | 并发线程数 | 非必要参数
+title  | 保存文件名 | √
+url  | 下载链接 | √
+imgUrl  | 封面图链接 | ×
+retrycounts  | 重试次数 | ×
+saveFilePaths  | 保存路径 | ×
+setbinaryMeMrges  | 是否二进制合并 | ×
+setdecryptions  | 是否实时解码分片 | ×
+threadCountss  | 并发线程数 | ×
 
 
 需要更多参数的自己加进去就行

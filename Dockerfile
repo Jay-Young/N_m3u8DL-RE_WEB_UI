@@ -15,7 +15,6 @@ RUN npm install --registry=https://registry.npmmirror.com
 COPY . .
 
 # 暴露容器的端口
-EXPOSE 3599
 EXPOSE 3600
 
 # 运行应用

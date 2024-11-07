@@ -70,9 +70,9 @@ var threads = new Set(); //当前并发线程池
 var tasksToProcess = []; //暂存执行线程池数据
 var worker;
 //ws配置
-const wsport = configData.wsport || 3600;
 const clients = []; // 保存所有连接的客户端
 //下载信息默认配置
+var apiToken = configData.apiToken || "6666"; //API验证
 var saveFile = configData.saveFile || "/volume2/video/HSCK"; //保存目录 /volume2/video/正版91porn/91porn
 var tempDir = configData.tempDir || "/volume2/Download/downTemp"; //零时目录
 var threadCount = configData.threadCount || 12; //线程数
@@ -158,6 +158,7 @@ function formatHeaders (headers) {
         return header
     }, {})
 }
+const isNotEmpty = (str) => str && str.length > 0;
 /**
  *	下载图片
  *	@url			String		图片下载url
@@ -231,9 +232,9 @@ async function downloadmp4(url, file, title, wsMsg, parentPorts) {
       wsMsg.msg = "下载中...";
       wsMsg.info = downinfo;
       parentPorts.postMessage(wsMsg); //回调给主进程
-      // if (progress == 100) {
-      //   console.log("下载完成");
-      // }
+      if (progress == 100) {
+        console.log("下载完成,保存到：",file);
+      }
     },
   });
   let responseHeaders = formatHeaders(response.headers);
@@ -283,6 +284,7 @@ function downloadM3U8(
   fileTs,
   title,
   wsMsg,
+  tempInfo,
   parentPorts
 ) {
   var downinfo = {};
@@ -293,7 +295,7 @@ function downloadM3U8(
     "--save-name",
     title,
     "--save-dir",
-    saveFile,
+    tempInfo.saveFilePaths || saveFile,
     "--tmp-dir",
     tempDir,
     "--ffmpeg-binary-path",
@@ -301,13 +303,13 @@ function downloadM3U8(
     "--ui-language",
     "zh-CN",
     "--thread-count",
-    threadCount,
+    tempInfo.threadCountss || threadCount,
     "--download-retry-count",
-    retrycount,
+    tempInfo.retrycounts || retrycount,
     "--binary-merge",
-    binaryMeMrge,
+    tempInfo.setbinaryMeMrges || binaryMeMrge,
     "--mp4-real-time-decryption",
-    mp4RealTimeDecryption,
+    tempInfo.setdecryptions || mp4RealTimeDecryption,
   ];
   // 创建 ffmpeg 子进程
   const m3u8DLArgsProcess = spawn("N_m3u8DL-RE", m3u8DLArgs);
@@ -375,10 +377,6 @@ function downloadM3U8(
   });
   // 监听进程关闭,下载完成
   m3u8DLArgsProcess.on("close", async (code) => {
-    let mpfile = await fileNameIsSave(file);
-    let tsFile = await fileNameIsSave(fileTs);
-    if (mpfile == true || tsFile == true) {
-      //查找文件是否存在
       console.log(`下载完成！-->文件保存至:${file}`);
       wsMsg.code = 200;
       wsMsg.msg = "下载完成！";
@@ -401,21 +399,6 @@ function downloadM3U8(
         time: Date.now(),
       };
       writeJson("done.json", jsonData);
-    } else {
-      wsMsg.code = 400;
-      wsMsg.msg = "下载失败！";
-      wsMsg.info = "";
-      const jsonData = {
-        msg: "404错误,资源连接失败",
-        id: wsMsg.id,
-        title: wsMsg.title,
-        downurl: wsMsg.downurl,
-        time: Date.now(),
-      };
-      writeJson("fail.json", jsonData);
-      parentPorts.postMessage(wsMsg);
-      console.error(`下载失败`);
-    }
     return{
       id,
       title,
@@ -447,7 +430,7 @@ function downloadM3U8(
 }
 function downloadMain(task, parentPorts) {
   return new Promise(async (resolve, reject) => {
-    const { id, title, url ,imgUrl} = task;
+    const { id, title, url ,imgUrl,tempInfo} = task;
     const wsMsg = {
       code: 500,
       info: { downprogress: 0 },
@@ -456,11 +439,13 @@ function downloadMain(task, parentPorts) {
       downurl: url,
       title: title,
     };
-    const file = `${saveFile}/${title}.mp4`; //拼接视频文件路径
-    const fileTs = `${saveFile}/${title}.ts`;
-    const imgFile = `${saveFile}/${title}-poster.jpg`; //拼接图片文件路径
+    const file = `${tempInfo.saveFilePaths}/${title}.mp4`; //拼接视频文件路径
+    const fileTs = `${tempInfo.saveFilePaths}/${title}.ts`;
+    const imgFile = `${tempInfo.saveFilePaths}/${title}-poster.jpg`; //拼接图片文件路径
     const fileIsSave = await fileNameIsSave(file);
     const tsFileIsSave = await fileNameIsSave(fileTs);
+    console.log(`保存目录：${file}`)
+    console.log(`ts保存目录：${fileTs}`)
     if (fileIsSave == false && tsFileIsSave == false) {
       if (imgUrl) {
         downloadAndSaveImage(imgUrl, imgFile);
@@ -477,10 +462,12 @@ function downloadMain(task, parentPorts) {
           fileTs,
           title,
           wsMsg,
+          tempInfo,
           parentPorts
         );
       } else {
         //axios文件流下载
+        console.log(`线程数更新为：${threadCount}`)
         downloadmp4(url, file, title, wsMsg, parentPorts);
       }
     } else {
@@ -662,27 +649,25 @@ if (isMainThread) {
       setbinaryMeMrges,
       setdecryptions,
       threadCountss,
-      imgUrl
+      imgUrl,
+      token
     } = req.body;
-    if (retrycounts) {
-      retrycount = retrycounts;
+    if(token!== apiToken){
+      res.send({
+        code: 0,
+        data: { },
+        msg: "token错误",
+      });
+      return
     }
-    if (saveFilePaths) {
-      saveFile = saveFilePaths;
-    }
-    if (setbinaryMeMrges) {
-      binaryMeMrge = setbinaryMeMrges;
-    }
-    if (setdecryptions) {
-      mp4RealTimeDecryption = setdecryptions;
-    }
-    if (threadCountss) {
-      threadCount = threadCountss;
-    }
-    console.log("下载线程:", threadCount);
+    //单次下载设置参数
+    const tempInfo = {
+      retrycounts,saveFilePaths,setbinaryMeMrges,setdecryptions,threadCountss
+    }  
+    console.log("保存目录:", saveFile);
     //计算hash值
     const id = hash(title);
-    const addInfo = { id, title, url ,imgUrl};
+    const addInfo = { id, title, url ,imgUrl ,tempInfo};
     //console.log(addInfo.id);
     //notifyClients(addInfo)
     //添加到待下载池

@@ -69,6 +69,9 @@ var downloadTasks = []; //数据池
 var threads = new Set(); //当前并发线程池
 var tasksToProcess = []; //暂存执行线程池数据
 var worker;
+//用户登录信息配置
+const defaultUsername = configData.userName || "console";
+const defaultPassword = configData.passWord || "123456";
 //ws配置
 const clients = []; // 保存所有连接的客户端
 //下载信息默认配置
@@ -454,6 +457,7 @@ function downloadMain(task, parentPorts) {
       }
       if (url.indexOf(".m3u8") !== -1) {
         //N_m3u8DL-RE下载
+        console.log('N_m3u8DL-RE下载')
         downloadM3U8(
           id,
           tsFileIsSave,
@@ -467,6 +471,7 @@ function downloadMain(task, parentPorts) {
         );
       } else {
         //axios文件流下载
+        console.log('axios下载')
         console.log(`线程数更新为：${threadCount}`)
         downloadmp4(url, file, title, wsMsg, parentPorts);
       }
@@ -586,6 +591,16 @@ if (isMainThread) {
   });
   router.post("/auth/login", (req, res) => {
     const { username, password, selectAccount, captcha } = req.body;
+    if(defaultUsername != username || defaultPassword != password){
+      const jsonData = {
+        code: 0,
+        data: {},
+        error: null,
+        message: "账号或密码错误",
+      };
+      res.send(jsonData);
+      return
+    }
     const token = getToken({ username });
     //console.log(token)
     res.header("Authoization", token);

@@ -19,10 +19,11 @@ ws接口`"VITE_GLOB_WS_URL":"http://localhost:3600/"`
 3. `npm install`
 4. `npm start`
 
-API接口可以给油猴脚本或者插件使用
-接口地址：http://localhost:3599/download
-# post参数:
-###API下载参数
+
+# API接口:
+### API接口可以给油猴脚本或者插件使用
+接口地址：`http://localhost:3599/download`
+### API下载参数
 参数  | 描述  | 是否必要
  ---- | ----- | ------  
 title  | 保存文件名 | √

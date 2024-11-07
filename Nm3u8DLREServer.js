@@ -52,7 +52,7 @@ function restartMain(){
 const configFile = path.join(__dirname, 'config.json');
 const configData = fs.readFileSync(configFile, 'utf8');
 //express配置
-const port = configData.port || 3599;
+const port = configData.port || 3600;
 const app = express();
 // 设置静态文件路径
 app.use(express.static('public'));
@@ -64,10 +64,10 @@ var threads = new Set(); //当前并发线程池
 var tasksToProcess = [];//暂存执行线程池数据
 var worker;
 //ws配置
-const wsport = configData.wsport || 3600;
+//const wsport = configData.wsport || 3600;
 const clients = [];// 保存所有连接的客户端
 //下载信息默认配置
-var saveFile = configData.saveFile || '/volume1/video/';//保存目录
+var saveFile = configData.saveFile || '/volume1/video';//保存目录
 var tempDir = configData.tempDir || '/volume1/Download/downTemp';//零时目录
 var threadCount = configData.threadCount || 12;//线程数
 var retrycount = configData.retrycount || 5;//分片下载重试次数
@@ -321,8 +321,13 @@ function downloadM3U8(task,parentPorts) {
     });
 }
 if (isMainThread) {//主线程
+  /**express服务端启动**/
+    const server = app.listen(port, () => {
+          console.log(`Express server running at http://localhost:${port}`);
+          console.log(`WebSocket server running at ws://localhost:${port}`);
+    });
   /**ws连接**/
-  const wss = new WebSocket.Server({ port: wsport });//开启WebSocket服务端
+  const wss = new WebSocket.Server({ server: server });//开启WebSocket服务端
   //ws监听用户连接
   wss.on('connection', function connection(ws,req) {
     const queryParamsString = req.url.split('?')[1]; // 获取URL中的查询参数部分
@@ -473,7 +478,6 @@ if (isMainThread) {//主线程
       res.send({code:0,data:{code:0,msg:'1秒后重启服务器'},msg:'更新成功'});
     });
   })
-
   // API端接收下载信息
   router.post('/download', (req, res) => {
       const { title,url,retrycounts,saveFilePaths,setbinaryMeMrges,setdecryptions,threadCountss } = req.body;
@@ -543,11 +547,7 @@ if (isMainThread) {//主线程
     }
   }
   
-  /**express服务端启动**/
-  app.listen(port, () => {
-      console.log(`Express server running at http://localhost:${port}`);
-      console.log(`WebSocket server running at ws://localhost:${wsport}`);
-  });
+
 } else {//子线程
     const { parentPort, workerData } = require('worker_threads');
     downloadM3U8(workerData,parentPort)

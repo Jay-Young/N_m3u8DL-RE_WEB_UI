@@ -1,20 +1,20 @@
 # N_m3u8DL-RE_WEB_UI
-
+# UI自定义配置
 API接口和标题在public/_app.config.js里面修改，
 
-<span style="color:red;">localhost</span>改为自己NAS的局域网ip或者域名
+**localhost**改为自己NAS的局域网ip或者域名
 
 api接口
 
-VITE_GLOB_API_URL:<span style="color:red;">http://localhost:3600/</span>
+"VITE_GLOB_API_URL":"http://localhost:3600/"
 
 ws接口
 
-VITE_GLOB_WS_URL:<span style="color:red;">http://localhost:3600/
+"VITE_GLOB_WS_URL":"http://localhost:3600/"
 
 网站标题
 
-VITE_GLOB_WEB_TITLE:<span style="color:red;">m3u8DL_console</span>
+"VITE_GLOB_WEB_TITLE":"m3u8DL_console"
 
 默认express端口:3600
 默认ws端口:3600
@@ -39,7 +39,8 @@ saveFilePaths  | 保存路径 | 非必要参数
 setbinaryMeMrges  | 是否二进制合并 | 非必要参数
 setdecryptions  | 是否实时解码分片 | 非必要参数
 threadCountss  | 并发线程数 | 非必要参数
-参数可以只给title和url，其它参数于预先设置好就行
+
+
 需要更多参数的自己加进去就行
 <img src="https://github.com/aidenconst/N_m3u8DL-RE_WEB_UI/blob/d67176fb2682ad3c1b1a7d9f82a65b2f3e8946aa/1.PNG">
 

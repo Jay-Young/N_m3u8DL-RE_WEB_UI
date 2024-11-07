@@ -1,16 +1,19 @@
 # N_m3u8DL-RE_WEB_UI
 #### 使用
 环境：NodeJs
-1. clone本项目 `git clone https://github.com/aidenconst/N_m3u8DL-RE_UI_Server.git`
-2. 进入项目目录`cd N_m3u8DL-RE_UI_Server`
-3. 安装依赖`npm install`
-4. 启动`npm start`
+1. clone本项目： `git clone https://github.com/aidenconst/N_m3u8DL-RE_UI_Server.git`
+2. 进入项目目录：`cd N_m3u8DL-RE_UI_Server`
+3. 安装依赖：`npm install`
+4. 启动：`npm start`
 # UI自定义配置
 API接口和标题在public/_app.config.js里面修改，
 **localhost**改为自己NAS的局域网ip或者域名
-api接口`"VITE_GLOB_API_URL":"http://localhost:3600/"`
-ws接口`"VITE_GLOB_WS_URL":"http://localhost:3600/"`
-网站标题`"VITE_GLOB_WEB_TITLE":"m3u8DL_console"`
+
+api接口： `"VITE_GLOB_API_URL":"http://localhost:3600/"`
+
+ws接口： `"VITE_GLOB_WS_URL":"http://localhost:3600/"`
+
+网站标题： `"VITE_GLOB_WEB_TITLE":"m3u8DL_console"`
 
 默认express端口:3600
 默认ws端口:3600

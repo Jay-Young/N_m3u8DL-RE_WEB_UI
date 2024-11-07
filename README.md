@@ -18,6 +18,7 @@ VITE_GLOB_WEB_TITLE:<span style="color:red;">m3u8DL_console</span>
 
 默认express端口:3600
 默认ws端口:3600
+
 更新：服务端改为ws和express公用一个端口号
 1. git clone https://github.com/aidenconst/N_m3u8DL-RE_UI_Server.git
 2. cd N_m3u8DL-RE_UI_Server

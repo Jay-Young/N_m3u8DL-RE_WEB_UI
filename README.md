@@ -18,6 +18,7 @@ api接口： `"VITE_GLOB_API_URL":"http://localhost:3600/"`
 
 
 更新：服务端ws和express共用一个端口号
+##### 前端源码：https://github.com/aidenconst/N_m3u8DL-RE_UI
 
 # API接口:
 
@@ -40,3 +41,4 @@ threadCountss  | 并发线程数 | ×
 <img src="https://github.com/aidenconst/N_m3u8DL-RE_WEB_UI/blob/d67176fb2682ad3c1b1a7d9f82a65b2f3e8946aa/1.PNG">
 
 UI框架用的：https://doc.vben.pro/
+

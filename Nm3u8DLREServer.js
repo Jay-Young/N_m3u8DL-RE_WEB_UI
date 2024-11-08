@@ -76,11 +76,11 @@ const defaultPassword = configData.passWord || "123456";
 const clients = []; // 保存所有连接的客户端
 //下载信息默认配置
 var apiToken = configData.apiToken || "6666"; //API验证
-var saveFile = configData.saveFile || "/volume2/video/"; //保存目录
+var saveFile = configData.saveFile || "/volume2/video/HSCK"; //保存目录 /volume2/video/正版91porn/91porn
 var tempDir = configData.tempDir || "/volume2/Download/downTemp"; //零时目录
 var threadCount = configData.threadCount || 12; //线程数
 var retrycount = configData.retrycount || 5; //分片下载重试次数
-var ffmpegPath = configData.ffmpegPath || "/volume2/profile/ffmpeg/ffmpeg"; //指定ffmpeg路径  
+var ffmpegPath = configData.ffmpegPath || "/volume2/DOWN/profile/ffmpeg/ffmpeg"; //指定ffmpeg路径  /volume2/DOWN/profile/ffmpeg/ffmpeg
 var binaryMeMrge = configData.binaryMeMrge || true; //是否二进制合并
 var mp4RealTimeDecryption = configData.mp4RealTimeDecryption || true; //是否实时解密MP4分片
 /**json操作**/
@@ -161,6 +161,7 @@ function formatHeaders (headers) {
         return header
     }, {})
 }
+const isNotEmpty = (str) => str && str.length > 0;
 /**
  *	下载图片
  *	@url			String		图片下载url
@@ -282,6 +283,8 @@ function downloadM3U8(
   id,
   tsFileIsSave,
   url,
+  file,
+  fileTs,
   title,
   wsMsg,
   tempInfo,
@@ -377,7 +380,7 @@ function downloadM3U8(
   });
   // 监听进程关闭,下载完成
   m3u8DLArgsProcess.on("close", async (code) => {
-      console.log(`下载完成！-->文件保存至:${tempInfo.saveFilePaths || saveFile}`);
+      console.log(`下载完成！-->文件保存至:${file}`);
       wsMsg.code = 200;
       wsMsg.msg = "下载完成！";
       wsMsg.info = {
@@ -459,6 +462,8 @@ function downloadMain(task, parentPorts) {
           id,
           tsFileIsSave,
           url,
+          file,
+          fileTs,
           title,
           wsMsg,
           tempInfo,
@@ -586,34 +591,37 @@ if (isMainThread) {
   });
   router.post("/auth/login", (req, res) => {
     const { username, password, selectAccount, captcha } = req.body;
-    if(defaultUsername != username || defaultPassword != password){
-      const jsonData = {
-        code: 0,
+    console.log({defaultUsername,defaultPassword,username,password})
+    if(defaultUsername === username && defaultPassword === password){
+        console.log('账号密码验证通过')
+       const token = getToken({ username });
+        //console.log(token)
+        res.header("Authoization", token);
+        const jsonData = {
+          code: 0,
+          data: {
+            id: 0,
+            password: hash(password),
+            realName: username,
+            roles: ["super"],
+            username: username,
+            accessToken: token,
+          },
+          error: null,
+          message: "ok",
+        };
+        //const jsonObj = JSON.parse(jsonData)
+        res.send(jsonData); 
+    }else{
+        const jsonData = {
+        code: 1,
         data: {},
-        error: null,
+        error: '账号或密码错误',
         message: "账号或密码错误",
       };
       res.send(jsonData);
-      return
     }
-    const token = getToken({ username });
-    //console.log(token)
-    res.header("Authoization", token);
-    const jsonData = {
-      code: 0,
-      data: {
-        id: 0,
-        password: hash(password),
-        realName: username,
-        roles: ["super"],
-        username: username,
-        accessToken: token,
-      },
-      error: null,
-      message: "ok",
-    };
-    //const jsonObj = JSON.parse(jsonData)
-    res.send(jsonData);
+    
   });
   router.get("/auth/codes", (req, res) => {
     const jsonData = {

@@ -83,8 +83,10 @@ var retrycount = configData.retrycount || 5; //分片下载重试次数
 var ffmpegPath = configData.ffmpegPath || "/volume2/profile/ffmpeg/ffmpeg"; //指定ffmpeg路径 
 var binaryMeMrge = configData.binaryMeMrge || true; //是否二进制合并
 var mp4RealTimeDecryption = configData.mp4RealTimeDecryption || true; //是否实时解密MP4分片
-/**json操作**/
-/**更新json文件**/
+
+/**
+ * 更新json文件
+ * **/
 function writeJson(fileName = "downdone.json", data) {
   // 文件路径
   const filePath = path.join(__dirname, `json/${fileName}`);
@@ -161,7 +163,7 @@ function formatHeaders (headers) {
         return header
     }, {})
 }
-const isNotEmpty = (str) => str && str.length > 0;
+
 /**
  *	下载图片
  *	@url			String		图片下载url

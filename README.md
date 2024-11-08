@@ -11,14 +11,13 @@ API接口和标题在public/_app.config.js里面修改，
 
 api接口： `"VITE_GLOB_API_URL":"http://localhost:3600/"`
 
-ws接口： `"VITE_GLOB_WS_URL":"http://localhost:3600/"`
 
 网站标题： `"VITE_GLOB_WEB_TITLE":"m3u8DL_console"`
 
 默认express端口:3600
-默认ws端口:3600
 
-更新：服务端改为ws和express公用一个端口号
+
+更新：服务端ws和express共用一个端口号
 
 # API接口:
 

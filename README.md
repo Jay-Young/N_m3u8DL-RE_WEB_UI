@@ -5,6 +5,8 @@
 2. 进入项目目录：`cd N_m3u8DL-RE_UI_Server`
 3. 安装依赖：`npm install`
 4. 启动：`npm start`
+
+##### 前端源码：https://github.com/aidenconst/N_m3u8DL-RE_UI
 # UI自定义配置
 API接口和标题在public/_app.config.js里面修改，
 **localhost**改为自己NAS的局域网ip或者域名
@@ -18,7 +20,7 @@ api接口： `"VITE_GLOB_API_URL":"http://localhost:3600/"`
 
 
 更新：服务端ws和express共用一个端口号
-##### 前端源码：https://github.com/aidenconst/N_m3u8DL-RE_UI
+
 
 # API接口:
 

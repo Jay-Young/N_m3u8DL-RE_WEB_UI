@@ -161,7 +161,6 @@ function formatHeaders (headers) {
         return header
     }, {})
 }
-const isNotEmpty = (str) => str && str.length > 0;
 /**
  *	下载图片
  *	@url			String		图片下载url

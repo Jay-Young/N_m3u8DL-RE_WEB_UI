@@ -1,6 +1,7 @@
 ## N_m3u8DL-RE_WEB_UI
 #### 使用
-环境：NodeJs
+环境：NodeJs , FFMPEG , <a href="https://github.com/nilaoda/N_m3u8DL-RE">N_m3u8DL-RE</a>
+
 1. clone本项目： `git clone https://github.com/aidenconst/N_m3u8DL-RE_UI_Server.git`
 2. 进入项目目录：`cd N_m3u8DL-RE_UI_Server`
 3. 安装依赖：`npm install`

@@ -5,7 +5,8 @@
   "main": "Nm3u8DLREServer",
   "scripts": {
     "start": "pm2 start Nm3u8DLREServer.js",
-    "restart": "pm2 restart Nm3u8DLREServer"
+    "restart": "pm2 restart Nm3u8DLREServer",
+    "stop":"pm2 stop Nm3u8DLREServer"
   },
   "author": "",
   "license": "ISC",

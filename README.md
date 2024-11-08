@@ -7,6 +7,7 @@
 3. 安装依赖：`npm install`
 4. 启动：`npm start`
 
+登录账号密码在config.json设置`"userName":"console","passWord":"123456"`
 ##### 前端源码：https://github.com/aidenconst/N_m3u8DL-RE_UI
 ## UI自定义配置
 API接口和标题在public/_app.config.js里面修改，

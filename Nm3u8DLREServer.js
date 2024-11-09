@@ -58,7 +58,7 @@ function restartMain() {
 const configFile = path.join(__dirname, "config.json");
 const configData = JSON.parse(fs.readFileSync(configFile, "utf8"));
 //express配置
-const port = configData.port || 3600;
+const port = configData.port || 3666;
 const app = express();
 // 设置静态文件路径
 app.use(express.static("public"));
@@ -76,17 +76,15 @@ const defaultPassword = configData.passWord || "123456";
 const clients = []; // 保存所有连接的客户端
 //下载信息默认配置
 var apiToken = configData.apiToken || "6666"; //API验证
-var saveFile = configData.saveFile || "/volume2/video"; //保存目录
+var saveFile = configData.saveFile || "/volume2/video/HSCK"; //保存目录 /volume2/video/正版91porn/91porn
 var tempDir = configData.tempDir || "/volume2/Download/downTemp"; //零时目录
 var threadCount = configData.threadCount || 12; //线程数
 var retrycount = configData.retrycount || 5; //分片下载重试次数
-var ffmpegPath = configData.ffmpegPath || "/volume2/profile/ffmpeg/ffmpeg"; //指定ffmpeg路径 
+var ffmpegPath = configData.ffmpegPath || "/volume2/DOWN/profile/ffmpeg/ffmpeg"; //指定ffmpeg路径  /volume2/DOWN/profile/ffmpeg/ffmpeg
 var binaryMeMrge = configData.binaryMeMrge || true; //是否二进制合并
 var mp4RealTimeDecryption = configData.mp4RealTimeDecryption || true; //是否实时解密MP4分片
-
-/**
- * 更新json文件
- * **/
+/**json操作**/
+/**更新json文件**/
 function writeJson(fileName = "downdone.json", data) {
   // 文件路径
   const filePath = path.join(__dirname, `json/${fileName}`);
@@ -163,11 +161,11 @@ function formatHeaders (headers) {
         return header
     }, {})
 }
-
+const isNotEmpty = (str) => str && str.length > 0;
 /**
- *	下载图片
- *	@url			String		图片下载url
- *	@savePath		String		文件或目录
+ *  下载图片
+ *  @url      String    图片下载url
+ *  @savePath   String    文件或目录
  **/
 async function downloadAndSaveImage(url, savePath = "images") {
   try {
@@ -444,6 +442,7 @@ function downloadMain(task, parentPorts) {
       downurl: url,
       title: title,
     };
+    console.log(`下载数据：`,task)
     const file = `${tempInfo.saveFilePaths}/${title}.mp4`; //拼接视频文件路径
     const fileTs = `${tempInfo.saveFilePaths}/${title}.ts`;
     const imgFile = `${tempInfo.saveFilePaths}/${title}-poster.jpg`; //拼接图片文件路径
@@ -647,6 +646,8 @@ if (isMainThread) {
   });
   router.post("/editconfig", authenticateToken, (req, res) => {
     const data = req.body;
+    data.userName = configData.userName;
+    data.passWord = configData.passWord;
     const filePath = path.join(__dirname, "config.json");
     const newJson = JSON.stringify(data);
     fs.writeFile(filePath, newJson, (err) => {
@@ -682,9 +683,13 @@ if (isMainThread) {
     }
     //单次下载设置参数
     const tempInfo = {
-      retrycounts,saveFilePaths,setbinaryMeMrges,setdecryptions,threadCountss
+      retrycounts:retrycounts || retrycount,
+      saveFilePaths:saveFilePaths || saveFile,
+      setbinaryMeMrges:setbinaryMeMrges || binaryMeMrge,
+      setdecryptions:setdecryptions || mp4RealTimeDecryption,
+      threadCountss:threadCountss || threadCount
     }  
-    console.log("保存目录:", saveFile);
+    console.log("配置信息:", tempInfo);
     //计算hash值
     const id = hash(title);
     const addInfo = { id, title, url ,imgUrl ,tempInfo};
@@ -705,7 +710,7 @@ if (isMainThread) {
     // 如果任务队列中有任务，则启动下载进程池
     res.send({
       code: 0,
-      data: { id, title, url },
+      data: { id, title, url},
       msg: "已加入下载队列",
     });
   });

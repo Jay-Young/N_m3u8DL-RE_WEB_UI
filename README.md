@@ -10,8 +10,8 @@
 登录账号密码在config.json设置`"userName":"console","passWord":"123456"`
 ##### 前端源码：https://github.com/aidenconst/N_m3u8DL-RE_UI
 ## UI自定义配置
-API接口和标题在public/_app.config.js里面修改，
-**localhost**改为自己NAS的局域网ip或者域名
+标题在public/_app.config.js里面修改，
+<s>**localhost**改为自己NAS的局域网ip或者域名</s>
 
 <s>[新版无需改以下部分]api接口： `"VITE_GLOB_API_URL":"http://localhost:3600/"` **这里必须改成自己的ip或域名**</s>
 

@@ -4,9 +4,7 @@
   "description": "N_m3u8DL-RE-GUI配套服务端",
   "main": "Nm3u8DLREServer",
   "scripts": {
-    "start": "pm2 start Nm3u8DLREServer.js",
-    "restart": "pm2 restart Nm3u8DLREServer",
-    "stop":"pm2 stop Nm3u8DLREServer"
+    "start": "nodemon --watch 'config.json' --watch 'index.js' index.js"
   },
   "author": "",
   "license": "ISC",

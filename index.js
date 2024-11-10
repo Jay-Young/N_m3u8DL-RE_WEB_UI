@@ -58,7 +58,7 @@ function restartMain() {
 const configFile = path.join(__dirname, "config.json");
 const configData = JSON.parse(fs.readFileSync(configFile, "utf8"));
 //express配置
-const port = configData.port || 3666;
+const port = configData.port || 3600;
 const app = express();
 // 设置静态文件路径
 app.use(express.static("public"));
@@ -76,11 +76,12 @@ const defaultPassword = configData.passWord || "123456";
 const clients = []; // 保存所有连接的客户端
 //下载信息默认配置
 var apiToken = configData.apiToken || "6666"; //API验证
-var saveFile = configData.saveFile || "/app/download"; //保存目录 /volume2/video/正版91porn/91porn
+var saveFile = configData.saveFile || "/app/download";  //保存目录
 var tempDir = configData.tempDir || "/app/download/temp"; //零时目录
 var threadCount = configData.threadCount || 12; //线程数
 var retrycount = configData.retrycount || 5; //分片下载重试次数
-var ffmpegPath = configData.ffmpegPath || "/app/plugin/ffmpeg/ffmpeg"; //指定ffmpeg路径  /volume2/DOWN/profile/ffmpeg/ffmpeg
+var ffmpegPath = configData.ffmpegPath || "/app/plugin/ffmpeg/ffmpeg" || "ffmpeg"; //ffmpeg目录
+var Nm3u8DLRE = configData.Nm3u8DLRE || "/app/plugin/N_m3u8DL-RE/N_m3u8DL-RE" || "N_m3u8DL-RE"; //N_m3u8DL-RE目录
 var binaryMeMrge = configData.binaryMeMrge || true; //是否二进制合并
 var mp4RealTimeDecryption = configData.mp4RealTimeDecryption || true; //是否实时解密MP4分片
 /**json操作**/
@@ -256,6 +257,7 @@ async function downloadmp4(url, file, title, wsMsg, parentPorts) {
         title: wsMsg.title,
         downurl: wsMsg.downurl,
         time: Date.now(),
+        size: `${wsMsg.info.totalsize}${wsMsg.info.totalsizeunit}`
       };
       writeJson("done.json", jsonData);
       console.log(`${title}--视频下载成功!`);
@@ -315,7 +317,7 @@ function downloadM3U8(
     tempInfo.setdecryptions,
   ];
   // 创建 ffmpeg 子进程
-  const m3u8DLArgsProcess = spawn("N_m3u8DL-RE", m3u8DLArgs);
+  const m3u8DLArgsProcess = spawn(Nm3u8DLRE, m3u8DLArgs);
   // 监听标准输出（stdout）
   m3u8DLArgsProcess.stdout.on("data", (data) => {
     let info = data.toString();
@@ -400,6 +402,7 @@ function downloadM3U8(
         title: wsMsg.title,
         downurl: wsMsg.downurl,
         time: Date.now(),
+        size: `${wsMsg.info.totalsize}${wsMsg.info.totalsizeunit}`
       };
       writeJson("done.json", jsonData);
     return{

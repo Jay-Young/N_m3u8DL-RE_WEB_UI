@@ -35,6 +35,8 @@ api接口： `"VITE_GLOB_API_URL":"http://localhost:3600/"` **这里必须改成
     4. 构建镜像：`docker build -t aidenconsole:v1 .`
 
     5. docker管理工具里面去创建容器就可以了，默认配置
+    
+目录映射自己配置以下对应目录
 ## API接口:
 
 ### API接口可以给油猴脚本或者插件使用

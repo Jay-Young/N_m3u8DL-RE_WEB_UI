@@ -26,16 +26,16 @@ api接口： `"VITE_GLOB_API_URL":"http://localhost:3600/"` **这里必须改成
 更新：服务端ws和express共用一个端口号
 
 ## Docker部署
-    1. clone本项目： `git clone https://github.com/aidenconst/N_m3u8DL-RE_UI_Server.git`
+    1. clone本项目： git clone https://github.com/aidenconst/N_m3u8DL-RE_UI_Server.git
 
-    2. 进入项目目录：`cd N_m3u8DL-RE_UI_Server`
+    2. 进入项目目录：cd N_m3u8DL-RE_UI_Server
 
     3. 修改UI配置里的ip，参考上方 #UI自定义配置
 
-    4. 构建镜像：`docker build -t aidenconsole:v1 .`
+    4. 构建镜像：docker build -t aidenconsole:v1 .
 
     5. docker管理工具里面去创建容器就可以了，默认配置
-    
+
 目录映射自己配置以下对应目录
 ## API接口:
 

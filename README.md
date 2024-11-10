@@ -13,14 +13,14 @@
 API接口和标题在public/_app.config.js里面修改，
 **localhost**改为自己NAS的局域网ip或者域名
 
-api接口： `"VITE_GLOB_API_URL":"http://localhost:3600/"` **这里必须改成自己的ip或域名**
+<s>[新版无需改以下部分]api接口： `"VITE_GLOB_API_URL":"http://localhost:3600/"` **这里必须改成自己的ip或域名**</s>
 
 
 网站标题： `"VITE_GLOB_WEB_TITLE":"m3u8DL_console"`
 
 默认端口:3600
 
-如果改端口需要修改：config.json文件port字段和public/_app.config.js里的VITE_GLOB_API_URL对应端口
+如果改端口需要修改：config.json文件port字段<s>[新版无需改以下部分]和public/_app.config.js里的VITE_GLOB_API_URL对应端口</s>
 
 
 ## Docker部署

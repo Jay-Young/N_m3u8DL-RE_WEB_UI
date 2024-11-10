@@ -210,8 +210,8 @@ async function downloadmp4(url, file, title, wsMsg, parentPorts) {
       const totalSize = (total / 1024 / 1024).toFixed(2);
       const loadSize = (load / 1024 / 1024).toFixed(2);
       downinfo = {
-        downclip: loadSize, //已下载分片数
-        totalclip: totalSize, //所有分片数
+        downclip: Math.floor(loadSize), //已下载分片数
+        totalclip: Math.floor(totalSize), //所有分片数
         downprogress: progress, //下载进度百分比
         downsize: loadSize, //已下载文件大小
         downsizeunit: "MB", //已下载文件大小单位
@@ -248,7 +248,7 @@ async function downloadmp4(url, file, title, wsMsg, parentPorts) {
   readerStream.on("finish", () => {
     if (fileLength === readerStream.bytesWritten) {
       wsMsg.code = 200;
-      wsMsg.msg = "下载中...";
+      wsMsg.msg = "下载完成";
       downinfo.downprogress = 100;
       wsMsg.info = downinfo;
       parentPorts.postMessage(wsMsg); //回调给主进程

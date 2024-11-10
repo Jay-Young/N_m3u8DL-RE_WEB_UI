@@ -32,7 +32,8 @@ api接口： `"VITE_GLOB_API_URL":"http://localhost:3600/"` **这里必须改成
 
     4. 构建镜像：docker build -t aidenconsole:v1 .
 
-    5. docker管理工具里面去创建容器就可以了，默认配置
+    5. docker管理工具里面去创建容器就可以了，默认配置。
+       或者命令：docker run --privileged -p 3600:3600 --network bridge --name m3u8downloader-1 -d aidenconsole:v1
 
 目录映射自己配置以下对应目录
 ## API接口:

@@ -13,17 +13,28 @@
 API接口和标题在public/_app.config.js里面修改，
 **localhost**改为自己NAS的局域网ip或者域名
 
-api接口： `"VITE_GLOB_API_URL":"http://localhost:3600/"`
+api接口： `"VITE_GLOB_API_URL":"http://localhost:3600/"` **这里必须改成自己的ip或域名**
 
 
 网站标题： `"VITE_GLOB_WEB_TITLE":"m3u8DL_console"`
 
 默认端口:3600
 
+如果改端口需要修改：config.json文件port字段和public/_app.config.js里的VITE_GLOB_API_URL对应端口
+
 
 更新：服务端ws和express共用一个端口号
 
+## Docker部署
+    1. clone本项目： `git clone https://github.com/aidenconst/N_m3u8DL-RE_UI_Server.git`
 
+    2. 进入项目目录：`cd N_m3u8DL-RE_UI_Server`
+
+    3. 修改UI配置里的ip，参考上方 #UI自定义配置
+
+    4. 构建镜像：`docker build -t aidenconsole:v1 .`
+
+    5. docker管理工具里面去创建容器就可以了，默认配置
 ## API接口:
 
 ### API接口可以给油猴脚本或者插件使用

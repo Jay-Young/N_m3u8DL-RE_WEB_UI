@@ -23,8 +23,6 @@ api接口： `"VITE_GLOB_API_URL":"http://localhost:3600/"` **这里必须改成
 如果改端口需要修改：config.json文件port字段和public/_app.config.js里的VITE_GLOB_API_URL对应端口
 
 
-更新：服务端ws和express共用一个端口号
-
 ## Docker部署
     1. clone本项目： git clone https://github.com/aidenconst/N_m3u8DL-RE_UI_Server.git
 

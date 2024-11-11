@@ -140,15 +140,17 @@ const hash = (text) => {
 const md5 = (str) => {
   return crypto.createHash('md5').update( str + Date.now()).digest('hex').substring(0, 16);
 }
+/**操作json删除json文件内指定id数据
+ * id   string    被删除的id
+ * key  string    操作的json文件名，不含扩展名
+ */
 const jsonDelItem = (id,key) => {
   return new Promise(function(resolve, reject) {
     const filePath = path.join(__dirname, `json/${key}.json`);
     fs.readFile(filePath, "utf8", (err, data) => {
       if (err) throw err;
       const jsonData = JSON.parse(`[${data}]`);
-      var filter = jsonData.filter((item) => {
-          return item.id == id;
-      });
+      var filter = jsonData.find((item) => item.id === id);
       var index = jsonData.indexOf(filter[0]);
       index > -1 && jsonData.splice(index, 1);
       const writeStream = fs.createWriteStream(filePath, { flags: 'w' });
@@ -599,8 +601,8 @@ if (isMainThread) {
     res.send(jsonData);
   });
   router.post("/auth/refresh", (req, res) => {
-    const { data } = req.body;
-    let payload = jwt.verify(token, secretKey);
+    const { accessToken } = req.body;
+    let payload = jwt.verify(accessToken, secretKey);
     const username = payload.username;
     const token = getToken({ username });
     const jsonData = {
@@ -695,7 +697,7 @@ if (isMainThread) {
     });
   });
   // 删除json中指定数据
-  router.post("/delJsonItem", async (req, res) => {
+  router.post("/delJsonItem", authenticateToken, async (req, res) => {
     const {id,key} = req.body;
     const upType = await jsonDelItem(id,key);
     const data = {

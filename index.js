@@ -89,9 +89,14 @@ const defaultPassword = configData.passWord || "123456";
 const clients = []; // 保存所有连接的客户端
 
 //环境变量配置状态，启动时检查一次
-var ffmpegIdentify = IdentifyENVvar("ffmpeg");
-var Nm3u8DLREIdentify = IdentifyENVvar("N_m3u8DL-RE");
-
+var ffmpegIdentify = false;
+var Nm3u8DLREIdentify = false;
+if (process.env.INIT_DONE !== 'true') {
+  //环境变量配置状态，启动时检查一次
+  ffmpegIdentify = IdentifyENVvar("ffmpeg");
+  Nm3u8DLREIdentify = IdentifyENVvar("N_m3u8DL-RE");
+  process.env.INIT_DONE = 'true';
+}
 //下载信息默认配置
 var apiToken = configData.apiToken || "6666"; //API验证
 var saveFile = configData.saveFile || "/app/download"; //保存目录
@@ -191,15 +196,15 @@ const jsonDelItem = (id, key) => {
       if (err) throw err;
       const jsonData = JSON.parse(`[${data}]`);
       var filter = jsonData.find((item) => item.id === id);
-      var index = jsonData.indexOf(filter[0]);
+      var index = jsonData.indexOf(filter);
       index > -1 && jsonData.splice(index, 1);
       const writeStream = fs.createWriteStream(filePath, { flags: "w" });
       const newData = JSON.stringify(jsonData).replace(/^\[|\]$/g, "");
       writeStream.write(newData);
       writeStream.end();
       writeStream.on("finish", () => {
-        resolve(true);
         console.log("文件覆盖写入完成。", filePath);
+        resolve(true);
       });
       writeStream.on("error", (err) => {
         console.error(`${filePath}写入过程中发生错误:`, err);
@@ -517,14 +522,14 @@ function downloadMain(task, parentPorts) {
       downurl: url,
       title: title,
     };
-    console.log(`下载数据：`, task);
+    //console.log(`下载数据：`, task);
     const file = `${tempInfo.saveFilePaths}/${title}.mp4`; //拼接视频文件路径
     const fileTs = `${tempInfo.saveFilePaths}/${title}.ts`;
     const imgFile = `${tempInfo.saveFilePaths}/${title}-poster.jpg`; //拼接图片文件路径
     const fileIsSave = await fileNameIsSave(file);
     const tsFileIsSave = await fileNameIsSave(fileTs);
-    console.log(`保存目录：${file}`);
-    console.log(`ts保存目录：${fileTs}`);
+    //console.log(`保存目录：${file}`);
+    //console.log(`ts保存目录：${fileTs}`);
     if (fileIsSave == false && tsFileIsSave == false) {
       if (imgUrl) {
         downloadAndSaveImage(imgUrl, imgFile);
@@ -781,7 +786,7 @@ if (isMainThread) {
     //添加到线程池
     if (threads.size < 5) {
       //如果只有新增的一条数据且没有正在执行的子线程
-      console.log("执行主线程");
+      //console.log("执行主线程");
       downMain();
     } else {
       console.log(

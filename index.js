@@ -18,6 +18,18 @@ const jwt = require("jsonwebtoken"); // 用于签发、解析`token`
 const pm2 = require("pm2");
 const secretKey = "aidenSEAFORESTyibin";
 
+const IdentifyENVvar = (VariableName) =>{
+  exec(`${VariableName} ${VariableName==='ffmpeg'?'':'-'}-version`, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`执行的错误: ${error}`);
+      // 处理 FFmpeg 未安装或环境变量未配置的情况
+      return false;
+    } else {
+      console.log(`${VariableName} 安装正确，环境变量配置成功`);
+      return true
+    }
+  });
+}
 /* 获取一个期限为12小时的token */
 function getToken(payload = {}) {
   return jwt.sign(payload, secretKey, {
@@ -64,7 +76,6 @@ const app = express();
 app.use(express.static("public"));
 //多进程配置
 var threadCounts = configData.threadCounts || 5; //默认设置并发数量
-//console.log(`并发下载任务数量:${threadCounts}`);
 var downloadTasks = []; //数据池
 var threads = new Set(); //当前并发线程池
 var tasksToProcess = []; //暂存执行线程池数据
@@ -72,16 +83,22 @@ var worker;
 //用户登录信息配置
 const defaultUsername = configData.userName || "console";
 const defaultPassword = configData.passWord || "123456";
+
 //ws配置
 const clients = []; // 保存所有连接的客户端
+
+//环境变量配置状态，启动时检查一次
+var ffmpegIdentify = IdentifyENVvar('ffmpeg');
+var Nm3u8DLREIdentify = IdentifyENVvar('N_m3u8DL-RE');
+
 //下载信息默认配置
 var apiToken = configData.apiToken || "6666"; //API验证
 var saveFile = configData.saveFile || "/app/download";  //保存目录
 var tempDir = configData.tempDir || "/app/download/temp"; //零时目录
 var threadCount = configData.threadCount || 12; //线程数
 var retrycount = configData.retrycount || 5; //分片下载重试次数
-var ffmpegPath = configData.ffmpegPath || "/app/plugin/ffmpeg/ffmpeg" || "ffmpeg"; //ffmpeg目录
-var Nm3u8DLRE = configData.Nm3u8DLRE || "/app/plugin/N_m3u8DL-RE/N_m3u8DL-RE" || "N_m3u8DL-RE"; //N_m3u8DL-RE目录
+var ffmpegPath = ffmpegIdentify ? "ffmpeg" : configData.ffmpegPath || "/app/plugin/ffmpeg/ffmpeg" ; //ffmpeg目录
+var Nm3u8DLRE = Nm3u8DLREIdentify ? "N_m3u8DL-RE" : configData.Nm3u8DLRE || "/app/plugin/N_m3u8DL-RE/N_m3u8DL-RE" ; //N_m3u8DL-RE目录
 var binaryMeMrge = configData.binaryMeMrge || true; //是否二进制合并
 var mp4RealTimeDecryption = configData.mp4RealTimeDecryption || true; //是否实时解密MP4分片
 /**json操作**/

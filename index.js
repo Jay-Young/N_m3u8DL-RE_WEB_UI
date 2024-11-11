@@ -18,18 +18,19 @@ const jwt = require("jsonwebtoken"); // 用于签发、解析`token`
 const pm2 = require("pm2");
 const secretKey = "aidenSEAFORESTyibin";
 
-const IdentifyENVvar = (VariableName) =>{
-  exec(`${VariableName} ${VariableName==='ffmpeg'?'':'-'}-version`, (error, stdout, stderr) => {
-    if (error) {
-      console.error(`${VariableName} 环境变量安装或配置无效`);
-      // 处理 FFmpeg 未安装或环境变量未配置的情况
-      return false;
-    } else {
-      console.log(`${VariableName} 安装正确，环境变量配置成功`);
-      return true
+const IdentifyENVvar = (VariableName) => {
+  exec(`${VariableName} ${VariableName === "ffmpeg" ? "" : "-"}-version`,(error, stdout, stderr) => {
+      if (error) {
+        console.error(`${VariableName} 环境变量安装或配置无效`);
+        // 处理 FFmpeg 未安装或环境变量未配置的情况
+        return false;
+      } else {
+        console.log(`${VariableName} 安装正确，环境变量配置成功`);
+        return true;
+      }
     }
-  });
-}
+  );
+};
 /* 获取一个期限为12小时的token */
 function getToken(payload = {}) {
   return jwt.sign(payload, secretKey, {
@@ -88,17 +89,17 @@ const defaultPassword = configData.passWord || "123456";
 const clients = []; // 保存所有连接的客户端
 
 //环境变量配置状态，启动时检查一次
-var ffmpegIdentify = IdentifyENVvar('ffmpeg');
-var Nm3u8DLREIdentify = IdentifyENVvar('N_m3u8DL-RE');
+var ffmpegIdentify = IdentifyENVvar("ffmpeg");
+var Nm3u8DLREIdentify = IdentifyENVvar("N_m3u8DL-RE");
 
 //下载信息默认配置
 var apiToken = configData.apiToken || "6666"; //API验证
-var saveFile = configData.saveFile || "/app/download";  //保存目录
+var saveFile = configData.saveFile || "/app/download"; //保存目录
 var tempDir = configData.tempDir || "/app/download/temp"; //零时目录
 var threadCount = configData.threadCount || 12; //线程数
 var retrycount = configData.retrycount || 5; //分片下载重试次数
-var ffmpegPath = ffmpegIdentify ? "ffmpeg" : configData.ffmpegPath || "/app/plugin/ffmpeg/ffmpeg" ; //ffmpeg目录
-var Nm3u8DLRE = Nm3u8DLREIdentify ? "N_m3u8DL-RE" : configData.Nm3u8DLRE || "/app/plugin/N_m3u8DL-RE/N_m3u8DL-RE" ; //N_m3u8DL-RE目录
+var ffmpegPath = ffmpegIdentify ? "ffmpeg" : configData.ffmpegPath || "/app/plugin/ffmpeg/ffmpeg"; //ffmpeg目录
+var Nm3u8DLRE = Nm3u8DLREIdentify ? "N_m3u8DL-RE" : configData.Nm3u8DLRE || "/app/plugin/N_m3u8DL-RE/N_m3u8DL-RE"; //N_m3u8DL-RE目录
 var binaryMeMrge = configData.binaryMeMrge || true; //是否二进制合并
 var mp4RealTimeDecryption = configData.mp4RealTimeDecryption || true; //是否实时解密MP4分片
 /**json操作**/
@@ -106,30 +107,48 @@ var mp4RealTimeDecryption = configData.mp4RealTimeDecryption || true; //是否�
 function writeJson(fileName = "done.json", data) {
   // 文件路径
   const filePath = path.join(__dirname, `json/${fileName}`);
-  // 创建一个可以追加写入的流
-  const writeStream = fs.createWriteStream(filePath, { flags: "a" });
-  // 获取文件大小
-  const stats = fs.statSync(filePath);
-  const fileSize = stats.size;
-  var jsonStr = "";
-  if (fileSize > 0) {
-    jsonStr = "," + JSON.stringify(data);
-  } else {
-    // 将数据转换为JSON字符串
-    jsonStr = JSON.stringify(data);
-  }
-  // 写入文件
-  writeStream.write(jsonStr);
-  //关闭工作流
-  writeStream.end();
+  fs.access(filePath, fs.constants.F_OK, (err) => {
+    //判断文件是否存在
+    if (err) {
+      // 文件不存在，创建写入流
+      const writeStream = fs.createWriteStream(filePath);
+      jsonStr = JSON.stringify(data);
+      writeStream.write(jsonStr);
+      writeStream.end();
+    } else {
+      // 文件存在，追加写入
+      // 创建一个可以追加写入的流
+      const writeStream = fs.createWriteStream(filePath, { flags: "a" });
+      // 获取文件大小
+      const stats = fs.statSync(filePath);
+      const fileSize = stats.size;
+      var jsonStr = "";
+      if (fileSize > 0) {
+        jsonStr = "," + JSON.stringify(data);
+      } else {
+        // 将数据转换为JSON字符串
+        jsonStr = JSON.stringify(data);
+      }
+      // 写入文件
+      writeStream.write(jsonStr);
+      //关闭工作流
+      writeStream.end();
+    }
+  });
 }
 /**读取json文件**/
 function readJson(fileName = "done.json") {
-  const filePath = path.join(__dirname, `json/${fileName}`);
-  fs.readFileSync(filePath, "utf8", (err, data) => {
-    if (err) throw err;
-    const jsonData = JSON.parse(`[${data}]`);
-    return jsonData;
+  return new Promise(function (resolve, reject) {
+    const filePath = path.join(__dirname, `json/${fileName}`);
+    fs.readFile(filePath, "utf8", (err, data) => {
+      if (err) {
+        //  throw err;
+        resolve([]);
+      } else {
+        const jsonData = JSON.parse(`[${data}]`);
+        resolve(jsonData);
+      }
+    });
   });
 }
 /**允许跨域请求**/
@@ -155,14 +174,18 @@ const hash = (text) => {
 };
 //生成md5,取前16位
 const md5 = (str) => {
-  return crypto.createHash('md5').update( str + Date.now()).digest('hex').substring(0, 16);
-}
+  return crypto
+    .createHash("md5")
+    .update(str + Date.now())
+    .digest("hex")
+    .substring(0, 16);
+};
 /**操作json删除json文件内指定id数据
  * id   string    被删除的id
  * key  string    操作的json文件名，不含扩展名
  */
-const jsonDelItem = (id,key) => {
-  return new Promise(function(resolve, reject) {
+const jsonDelItem = (id, key) => {
+  return new Promise(function (resolve, reject) {
     const filePath = path.join(__dirname, `json/${key}.json`);
     fs.readFile(filePath, "utf8", (err, data) => {
       if (err) throw err;
@@ -170,22 +193,21 @@ const jsonDelItem = (id,key) => {
       var filter = jsonData.find((item) => item.id === id);
       var index = jsonData.indexOf(filter[0]);
       index > -1 && jsonData.splice(index, 1);
-      const writeStream = fs.createWriteStream(filePath, { flags: 'w' });
-      const newData = JSON.stringify(jsonData).replace(/^\[|\]$/g, '');
+      const writeStream = fs.createWriteStream(filePath, { flags: "w" });
+      const newData = JSON.stringify(jsonData).replace(/^\[|\]$/g, "");
       writeStream.write(newData);
       writeStream.end();
-      writeStream.on('finish', () => {
+      writeStream.on("finish", () => {
         resolve(true);
-        console.log('文件覆盖写入完成。',filePath);
+        console.log("文件覆盖写入完成。", filePath);
       });
-      writeStream.on('error', (err) => {
+      writeStream.on("error", (err) => {
         console.error(`${filePath}写入过程中发生错误:`, err);
         reject(false);
       });
-      
     });
-  })
-}
+  });
+};
 //检查文件是否存在
 const fileNameIsSave = (file) => {
   return new Promise((resolve, reject) => {
@@ -206,11 +228,11 @@ function notifyClients(message) {
     }
   });
 }
-function formatHeaders (headers) {
-    return Object.keys(headers).reduce((header, name) => {
-        header[String(name).toLowerCase()] = headers[name]
-        return header
-    }, {})
+function formatHeaders(headers) {
+  return Object.keys(headers).reduce((header, name) => {
+    header[String(name).toLowerCase()] = headers[name];
+    return header;
+  }, {});
 }
 const isNotEmpty = (str) => str && str.length > 0;
 /**
@@ -271,7 +293,7 @@ async function downloadmp4(url, file, title, wsMsg, parentPorts) {
         downspeedunit: "", //下载速度单位
       };
       if (timeDiff > 0) {
-        const downloadSpeed = (ProgressEvent.loaded / timeDiff); // 转换为KB/s
+        const downloadSpeed = ProgressEvent.loaded / timeDiff; // 转换为KB/s
         const downloadSpeeds = downloadSpeed.toFixed(0);
         downinfo.downspeed =
           downloadSpeeds < 1024
@@ -287,7 +309,7 @@ async function downloadmp4(url, file, title, wsMsg, parentPorts) {
       wsMsg.info = downinfo;
       parentPorts.postMessage(wsMsg); //回调给主进程
       if (progress == 100) {
-        console.log("下载完成,保存到：",file);
+        console.log("下载完成,保存到：", file);
       }
     },
   });
@@ -307,7 +329,7 @@ async function downloadmp4(url, file, title, wsMsg, parentPorts) {
         title: wsMsg.title,
         downurl: wsMsg.downurl,
         time: Date.now(),
-        size: `${wsMsg.info.totalsize}${wsMsg.info.totalsizeunit}`
+        size: `${wsMsg.info.totalsize}${wsMsg.info.totalsizeunit}`,
       };
       writeJson("done.json", jsonData);
       console.log(`${title}--视频下载成功!`);
@@ -402,7 +424,7 @@ function downloadM3U8(
         parentPorts.postMessage(wsMsg); //回调给主进程
         //console.log(`分片信息[${downinfo.downclip}/${downinfo.totalclip}]--文件大小[${downinfo.downsize}${downinfo.downsizeunit}/${downinfo.totalsize}${downinfo.totalsizeunit}]--下载速度[${downinfo.downspeed}${downinfo.downspeedunit}]--进度[${downinfo.downprogress}%]`);
       }
-      return{
+      return {
         id,
         title,
         tsFileIsSave,
@@ -432,30 +454,30 @@ function downloadM3U8(
   });
   // 监听进程关闭,下载完成
   m3u8DLArgsProcess.on("close", async (code) => {
-      console.log(`下载完成！-->文件保存至:${file}`);
-      wsMsg.code = 200;
-      wsMsg.msg = "下载完成！";
-      wsMsg.info = {
-        downclip: downinfo.totalclip, //已下载分片数
-        totalclip: downinfo.totalclip, //所有分片数
-        downprogress: 100, //下载进度百分比
-        downsize: downinfo.totalsize, //已下载文件大小
-        downsizeunit: downinfo.downsizeunit, //已下载文件大小单位
-        totalsize: downinfo.totalsize, //文件总大小
-        totalsizeunit: downinfo.totalsizeunit, //文件总大小单位
-        downspeed: 0, //下载速度
-        downspeedunit: downinfo.downspeedunit, //下载速度单位
-      };
-      parentPorts.postMessage(wsMsg); //回调给主进程
-      const jsonData = {
-        id: wsMsg.id,
-        title: wsMsg.title,
-        downurl: wsMsg.downurl,
-        time: Date.now(),
-        size: `${wsMsg.info.totalsize}${wsMsg.info.totalsizeunit}`
-      };
-      writeJson("done.json", jsonData);
-    return{
+    console.log(`下载完成！-->文件保存至:${file}`);
+    wsMsg.code = 200;
+    wsMsg.msg = "下载完成！";
+    wsMsg.info = {
+      downclip: downinfo.totalclip, //已下载分片数
+      totalclip: downinfo.totalclip, //所有分片数
+      downprogress: 100, //下载进度百分比
+      downsize: downinfo.totalsize, //已下载文件大小
+      downsizeunit: downinfo.downsizeunit, //已下载文件大小单位
+      totalsize: downinfo.totalsize, //文件总大小
+      totalsizeunit: downinfo.totalsizeunit, //文件总大小单位
+      downspeed: 0, //下载速度
+      downspeedunit: downinfo.downspeedunit, //下载速度单位
+    };
+    parentPorts.postMessage(wsMsg); //回调给主进程
+    const jsonData = {
+      id: wsMsg.id,
+      title: wsMsg.title,
+      downurl: wsMsg.downurl,
+      time: Date.now(),
+      size: `${wsMsg.info.totalsize}${wsMsg.info.totalsizeunit}`,
+    };
+    writeJson("done.json", jsonData);
+    return {
       id,
       title,
       tsFileIsSave,
@@ -477,7 +499,7 @@ function downloadM3U8(
     writeJson("error.json", jsonData);
     parentPorts.postMessage(wsMsg); //回调给主进程
     //notifyClients(wsMsg);
-    return{
+    return {
       id,
       title,
       tsFileIsSave,
@@ -486,7 +508,7 @@ function downloadM3U8(
 }
 function downloadMain(task, parentPorts) {
   return new Promise(async (resolve, reject) => {
-    const { id, title, url ,imgUrl,tempInfo} = task;
+    const { id, title, url, imgUrl, tempInfo } = task;
     const wsMsg = {
       code: 500,
       info: { downprogress: 0 },
@@ -495,14 +517,14 @@ function downloadMain(task, parentPorts) {
       downurl: url,
       title: title,
     };
-    console.log(`下载数据：`,task)
+    console.log(`下载数据：`, task);
     const file = `${tempInfo.saveFilePaths}/${title}.mp4`; //拼接视频文件路径
     const fileTs = `${tempInfo.saveFilePaths}/${title}.ts`;
     const imgFile = `${tempInfo.saveFilePaths}/${title}-poster.jpg`; //拼接图片文件路径
     const fileIsSave = await fileNameIsSave(file);
     const tsFileIsSave = await fileNameIsSave(fileTs);
-    console.log(`保存目录：${file}`)
-    console.log(`ts保存目录：${fileTs}`)
+    console.log(`保存目录：${file}`);
+    console.log(`ts保存目录：${fileTs}`);
     if (fileIsSave == false && tsFileIsSave == false) {
       if (imgUrl) {
         downloadAndSaveImage(imgUrl, imgFile);
@@ -511,7 +533,7 @@ function downloadMain(task, parentPorts) {
       }
       if (url.indexOf(".m3u8") !== -1) {
         //N_m3u8DL-RE下载
-        console.log('N_m3u8DL-RE下载')
+        console.log("N_m3u8DL-RE下载");
         downloadM3U8(
           id,
           tsFileIsSave,
@@ -525,8 +547,8 @@ function downloadMain(task, parentPorts) {
         );
       } else {
         //axios文件流下载
-        console.log('axios下载')
-        console.log(`线程数更新为：${threadCount}`)
+        console.log("axios下载");
+        console.log(`线程数更新为：${threadCount}`);
         downloadmp4(url, file, title, wsMsg, parentPorts);
       }
     } else {
@@ -580,10 +602,8 @@ if (isMainThread) {
     });
   });
   /**主线程主任务**/
-  router.get("/downloadfail", authenticateToken, (req, res) => {
-    const filePath = path.join(__dirname, `json/fail.json`);
-    const jsonData = fs.readFileSync(filePath, "utf8");
-    const jsonObj = JSON.parse(`[${jsonData}]`);
+  router.get("/downloadfail", authenticateToken, async (req, res) => {
+    const jsonObj = await readJson("fail.json");
     jsonObj.reverse();
     res.send({
       code: 0,
@@ -591,10 +611,8 @@ if (isMainThread) {
       message: "下载失败数据",
     });
   });
-  router.get("/downloaddone", authenticateToken, (req, res) => {
-    const filePath = path.join(__dirname, `json/done.json`);
-    const jsonData = fs.readFileSync(filePath, "utf8");
-    const jsonObj = JSON.parse(`[${jsonData}]`);
+  router.get("/downloaddone", authenticateToken, async (req, res) => {
+    const jsonObj = await readJson("done.json");
     jsonObj.reverse();
     res.send({
       code: 0,
@@ -645,37 +663,36 @@ if (isMainThread) {
   });
   router.post("/auth/login", (req, res) => {
     const { username, password, selectAccount, captcha } = req.body;
-    console.log({defaultUsername,defaultPassword,username,password})
-    if(defaultUsername === username && defaultPassword === password){
-        console.log('账号密码验证通过')
-       const token = getToken({ username });
-        //console.log(token)
-        res.header("Authoization", token);
-        const jsonData = {
-          code: 0,
-          data: {
-            id: 0,
-            password: md5(password),
-            realName: username,
-            roles: ["super"],
-            username: username,
-            accessToken: token,
-          },
-          error: null,
-          message: "ok",
-        };
-        //const jsonObj = JSON.parse(jsonData)
-        res.send(jsonData); 
-    }else{
-        const jsonData = {
+    console.log({ defaultUsername, defaultPassword, username, password });
+    if (defaultUsername === username && defaultPassword === password) {
+      console.log("账号密码验证通过");
+      const token = getToken({ username });
+      //console.log(token)
+      res.header("Authoization", token);
+      const jsonData = {
+        code: 0,
+        data: {
+          id: 0,
+          password: md5(password),
+          realName: username,
+          roles: ["super"],
+          username: username,
+          accessToken: token,
+        },
+        error: null,
+        message: "ok",
+      };
+      //const jsonObj = JSON.parse(jsonData)
+      res.send(jsonData);
+    } else {
+      const jsonData = {
         code: 1,
         data: {},
-        error: '账号或密码错误',
+        error: "账号或密码错误",
         message: "账号或密码错误",
       };
       res.send(jsonData);
     }
-    
   });
   router.get("/auth/codes", (req, res) => {
     const jsonData = {
@@ -715,11 +732,11 @@ if (isMainThread) {
   });
   // 删除json中指定数据
   router.post("/delJsonItem", authenticateToken, async (req, res) => {
-    const {id,key} = req.body;
-    const upType = await jsonDelItem(id,key);
+    const { id, key } = req.body;
+    const upType = await jsonDelItem(id, key);
     const data = {
       code: 0,
-      data: {type:upType},
+      data: { type: upType },
       message: "更新成功",
     };
     res.send(data);
@@ -735,28 +752,28 @@ if (isMainThread) {
       setdecryptions,
       threadCountss,
       imgUrl,
-      token
+      token,
     } = req.body;
-    if(token!== apiToken){
+    if (token !== apiToken) {
       res.send({
         code: 0,
-        data: { },
+        data: {},
         msg: "token错误",
       });
-      return
+      return;
     }
     //单次下载设置参数
     const tempInfo = {
-      retrycounts:retrycounts || retrycount,
-      saveFilePaths:saveFilePaths || saveFile,
-      setbinaryMeMrges:setbinaryMeMrges || binaryMeMrge,
-      setdecryptions:setdecryptions || mp4RealTimeDecryption,
-      threadCountss:threadCountss || threadCount
-    }  
+      retrycounts: retrycounts || retrycount,
+      saveFilePaths: saveFilePaths || saveFile,
+      setbinaryMeMrges: setbinaryMeMrges || binaryMeMrge,
+      setdecryptions: setdecryptions || mp4RealTimeDecryption,
+      threadCountss: threadCountss || threadCount,
+    };
     console.log("配置信息:", tempInfo);
     //计算hash值
     const id = md5(title);
-    const addInfo = { id, title, url ,imgUrl ,tempInfo};
+    const addInfo = { id, title, url, imgUrl, tempInfo };
     //console.log(addInfo.id);
     //notifyClients(addInfo)
     //添加到待下载池
@@ -774,7 +791,7 @@ if (isMainThread) {
     // 如果任务队列中有任务，则启动下载进程池
     res.send({
       code: 0,
-      data: { id, title, url},
+      data: { id, title, url },
       msg: "已加入下载队列",
     });
   });

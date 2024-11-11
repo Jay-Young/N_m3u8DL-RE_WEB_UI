@@ -45,6 +45,7 @@
  ---- | ----- | ------  
 title  | 保存文件名 | √
 url  | 下载链接 | √
+token  | 连接token | √
 imgUrl  | 封面图链接 | ×
 retrycounts  | 重试次数 | ×
 saveFilePaths  | 保存路径 | ×
@@ -52,8 +53,7 @@ setbinaryMeMrges  | 是否二进制合并 | ×
 setdecryptions  | 是否实时解码分片 | ×
 threadCountss  | 并发线程数 | ×
 
-
-需要更多参数的自己加进去就行
+需要更多参数的自己加进去就行，token在【下载配置】里面设置，默认6666
 ## 预览
 <img src="https://github.com/aidenconst/N_m3u8DL-RE_WEB_UI/blob/d67176fb2682ad3c1b1a7d9f82a65b2f3e8946aa/1.PNG">
 

@@ -21,7 +21,7 @@ const secretKey = "aidenSEAFORESTyibin";
 const IdentifyENVvar = (VariableName) =>{
   exec(`${VariableName} ${VariableName==='ffmpeg'?'':'-'}-version`, (error, stdout, stderr) => {
     if (error) {
-      console.error(`执行的错误: ${error}`);
+      console.error(`${VariableName} 环境变量安装或配置无效`);
       // 处理 FFmpeg 未安装或环境变量未配置的情况
       return false;
     } else {

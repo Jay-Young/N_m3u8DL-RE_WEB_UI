@@ -86,7 +86,7 @@ var binaryMeMrge = configData.binaryMeMrge || true; //是否二进制合并
 var mp4RealTimeDecryption = configData.mp4RealTimeDecryption || true; //是否实时解密MP4分片
 /**json操作**/
 /**更新json文件**/
-function writeJson(fileName = "downdone.json", data) {
+function writeJson(fileName = "done.json", data) {
   // 文件路径
   const filePath = path.join(__dirname, `json/${fileName}`);
   // 创建一个可以追加写入的流
@@ -107,11 +107,11 @@ function writeJson(fileName = "downdone.json", data) {
   writeStream.end();
 }
 /**读取json文件**/
-function readJson(fileName = "downdone.json") {
+function readJson(fileName = "done.json") {
   const filePath = path.join(__dirname, `json/${fileName}`);
-  fs.readFile(filePath, "utf8", (err, data) => {
+  fs.readFileSync(filePath, "utf8", (err, data) => {
     if (err) throw err;
-    const jsonData = JSON.parse(data);
+    const jsonData = JSON.parse(`[${data}]`);
     return jsonData;
   });
 }
@@ -136,6 +136,37 @@ app.use(express.json());
 const hash = (text) => {
   return crypto.createHash("sha256").update(text).digest("hex");
 };
+//生成md5,取前16位
+const md5 = (str) => {
+  return crypto.createHash('md5').update( str + Date.now()).digest('hex').substring(0, 16);
+}
+const jsonDelItem = (id,key) => {
+  return new Promise(function(resolve, reject) {
+    const filePath = path.join(__dirname, `json/${key}.json`);
+    fs.readFile(filePath, "utf8", (err, data) => {
+      if (err) throw err;
+      const jsonData = JSON.parse(`[${data}]`);
+      var filter = jsonData.filter((item) => {
+          return item.id == id;
+      });
+      var index = jsonData.indexOf(filter[0]);
+      index > -1 && jsonData.splice(index, 1);
+      const writeStream = fs.createWriteStream(filePath, { flags: 'w' });
+      const newData = JSON.stringify(jsonData).replace(/^\[|\]$/g, '');
+      writeStream.write(newData);
+      writeStream.end();
+      writeStream.on('finish', () => {
+        resolve(true);
+        console.log('文件覆盖写入完成。',filePath);
+      });
+      writeStream.on('error', (err) => {
+        console.error(`${filePath}写入过程中发生错误:`, err);
+        reject(false);
+      });
+      
+    });
+  })
+}
 //检查文件是否存在
 const fileNameIsSave = (file) => {
   return new Promise((resolve, reject) => {
@@ -605,7 +636,7 @@ if (isMainThread) {
           code: 0,
           data: {
             id: 0,
-            password: hash(password),
+            password: md5(password),
             realName: username,
             roles: ["super"],
             username: username,
@@ -663,6 +694,17 @@ if (isMainThread) {
       });
     });
   });
+  // 删除json中指定数据
+  router.post("/delJsonItem", async (req, res) => {
+    const {id,key} = req.body;
+    const upType = await jsonDelItem(id,key);
+    const data = {
+      code: 0,
+      data: {type:upType},
+      message: "更新成功",
+    };
+    res.send(data);
+  });
   // API端接收下载信息
   router.post("/download", (req, res) => {
     const {
@@ -694,7 +736,7 @@ if (isMainThread) {
     }  
     console.log("配置信息:", tempInfo);
     //计算hash值
-    const id = hash(title);
+    const id = md5(title);
     const addInfo = { id, title, url ,imgUrl ,tempInfo};
     //console.log(addInfo.id);
     //notifyClients(addInfo)

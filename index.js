@@ -189,9 +189,9 @@ const md5 = (str) => {
  * id   string    被删除的id
  * key  string    操作的json文件名，不含扩展名
  */
-const jsonDelItem = (id, key) => {
+const jsonDelItem = (id, fileName) => {
   return new Promise(function (resolve, reject) {
-    const filePath = path.join(__dirname, `json/${key}.json`);
+    const filePath = path.join(__dirname, `json/${fileName}.json`);
     fs.readFile(filePath, "utf8", (err, data) => {
       if (err) throw err;
       const jsonData = JSON.parse(`[${data}]`);

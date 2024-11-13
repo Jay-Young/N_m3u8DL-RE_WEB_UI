@@ -15,11 +15,14 @@ const fs = require("fs");
 const path = require("path");
 const expressJwt = require("express-jwt"); // 用于路由权限控制
 const jwt = require("jsonwebtoken"); // 用于签发、解析`token`
+const Jwt = require("jsonwebtoken"); // 用于签发、解析`token`
 const pm2 = require("pm2");
 const secretKey = "aidenSEAFORESTyibin";
 
 const IdentifyENVvar = (VariableName) => {
-  exec(`${VariableName} ${VariableName === "ffmpeg" ? "" : "-"}-version`,(error, stdout, stderr) => {
+  exec(
+    `${VariableName} ${VariableName === "ffmpeg" ? "" : "-"}-version`,
+    (error, stdout, stderr) => {
       if (error) {
         console.error(`${VariableName} 环境变量安装或配置无效`);
         // 处理 FFmpeg 未安装或环境变量未配置的情况
@@ -31,23 +34,33 @@ const IdentifyENVvar = (VariableName) => {
     }
   );
 };
-/* 获取一个期限为12小时的token */
+
+/* 获取一个期限为72小时的token */
 function getToken(payload = {}) {
   return jwt.sign(payload, secretKey, {
-    expiresIn: "12h",
+    expiresIn: "72h",
   });
 }
 /**路由守卫**/
 function authenticateToken(req, res, next) {
-  const token = req.header("Authorization");
-  if (!token) return res.status(401).send("Access denied");
-
+  const token = req.headers["authorization"];
+  if (token == null)
+    return res.sendStatus(401); // 如果没有token，返回未授权的状态码
   try {
-    const decoded = jwt.verify(token, secretKey);
-    req.user = decoded;
-    next();
+    jwt.verify(token, secretKey, (err, decoded) => {
+      if (err) return res.sendStatus(401);
+      //  const newToken = getToken(decoded.username);
+      res.decoded = decoded;
+      //res.header("Authoization", newToken);//每次访问延长授权时间
+      next(); // 调用下一个中间件或路由处理器
+    });
   } catch (error) {
-    res.status(403).send("Invalid token");
+    return res.send({
+      code: -1,
+      data: null,
+      error: "请刷新登录后重试！",
+      message: "请刷新登录后重试！",
+    });
   }
 }
 /** 重启程序
@@ -91,11 +104,11 @@ const clients = []; // 保存所有连接的客户端
 //环境变量配置状态，启动时检查一次
 var ffmpegIdentify = false;
 var Nm3u8DLREIdentify = false;
-if (process.env.INIT_DONE !== 'true') {
+if (process.env.INIT_DONE !== "true") {
   //环境变量配置状态，启动时检查一次
   ffmpegIdentify = IdentifyENVvar("ffmpeg");
   Nm3u8DLREIdentify = IdentifyENVvar("N_m3u8DL-RE");
-  process.env.INIT_DONE = 'true';
+  process.env.INIT_DONE = "true";
 }
 //下载信息默认配置
 var apiToken = configData.apiToken || "6666"; //API验证
@@ -103,8 +116,12 @@ var saveFile = configData.saveFile || "/app/download"; //保存目录
 var tempDir = configData.tempDir || "/app/download/temp"; //零时目录
 var threadCount = configData.threadCount || 12; //线程数
 var retrycount = configData.retrycount || 5; //分片下载重试次数
-var ffmpegPath = ffmpegIdentify ? "ffmpeg" : configData.ffmpegPath || "/app/plugin/ffmpeg/ffmpeg"; //ffmpeg目录
-var Nm3u8DLRE = Nm3u8DLREIdentify ? "N_m3u8DL-RE" : configData.Nm3u8DLRE || "/app/plugin/N_m3u8DL-RE/N_m3u8DL-RE"; //N_m3u8DL-RE目录
+var ffmpegPath = ffmpegIdentify
+  ? "ffmpeg"
+  : configData.ffmpegPath || "/app/plugin/ffmpeg/ffmpeg"; //ffmpeg目录
+var Nm3u8DLRE = Nm3u8DLREIdentify
+  ? "N_m3u8DL-RE"
+  : configData.Nm3u8DLRE || "/app/plugin/N_m3u8DL-RE/N_m3u8DL-RE"; //N_m3u8DL-RE目录
 var binaryMeMrge = configData.binaryMeMrge || true; //是否二进制合并
 var mp4RealTimeDecryption = configData.mp4RealTimeDecryption || true; //是否实时解密MP4分片
 /**json操作**/
@@ -147,6 +164,7 @@ function readJson(fileName = "done.json") {
     const filePath = path.join(__dirname, `json/${fileName}`);
     fs.readFile(filePath, "utf8", (err, data) => {
       if (err) {
+        console.log(err);
         //  throw err;
         resolve([]);
       } else {
@@ -393,19 +411,43 @@ function downloadM3U8(
     "--mp4-real-time-decryption",
     tempInfo.setdecryptions,
   ];
+  //设置header，header必须为json格式,如：var json = {Cookie: "mycookie",}
+  if (tempInfo.header) {
+    for (let key in tempInfo.header) {
+      m3u8DLArgs.push("-H");
+      m3u8DLArgs.push(`${key}: ${tempInfo.header[key]}`);
+    }
+  } else {
+    m3u8DLArgs.push("-H");
+    m3u8DLArgs.push(
+      "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
+    );
+  }
   // 创建 ffmpeg 子进程
   const m3u8DLArgsProcess = spawn(Nm3u8DLRE, m3u8DLArgs);
   // 监听标准输出（stdout）
   m3u8DLArgsProcess.stdout.on("data", (data) => {
     let info = data.toString();
-    if (info.includes("404 (Not Found)")) {
+    console.log(info);
+    if (
+      info.includes("404 (Not Found)") ||
+      info.includes("Connection refused")
+    ) {
       //无法连接，重试
       const matcha = info.match(/\((\d+)\/(\d+)\)/);
       if (matcha) {
         console.log(`ID:${id},404错误,正在重试${matcha[0]}...`);
-        wsMsg.code = 200;
-        wsMsg.msg = `404错误,重试${matcha[0]}...`;
+        wsMsg.code = 500;
+        wsMsg.msg = `404错误或拒绝访问,重试${matcha[0]}...`;
         parentPorts.postMessage(wsMsg); //回调给主进程
+        const jsonData = {
+          msg: "404错误",
+          id: wsMsg.id,
+          title: wsMsg.title,
+          downurl: wsMsg.downurl,
+          time: Date.now(),
+        };
+        writeJson("fail.json", jsonData);
       }
     } else {
       const regex =
@@ -450,7 +492,7 @@ function downloadM3U8(
       downurl: wsMsg.downurl,
       time: Date.now(),
     };
-    writeJson("error.json", jsonData);
+    writeJson("fail.json", jsonData);
     reject({
       id,
       title,
@@ -473,7 +515,6 @@ function downloadM3U8(
       downspeed: 0, //下载速度
       downspeedunit: downinfo.downspeedunit, //下载速度单位
     };
-    parentPorts.postMessage(wsMsg); //回调给主进程
     const jsonData = {
       id: wsMsg.id,
       title: wsMsg.title,
@@ -482,6 +523,8 @@ function downloadM3U8(
       size: `${wsMsg.info.totalsize}${wsMsg.info.totalsizeunit}`,
     };
     writeJson("done.json", jsonData);
+
+    parentPorts.postMessage(wsMsg); //回调给主进程
     return {
       id,
       title,
@@ -501,7 +544,7 @@ function downloadM3U8(
       downurl: wsMsg.downurl,
       time: Date.now(),
     };
-    writeJson("error.json", jsonData);
+    writeJson("fail.json", jsonData);
     parentPorts.postMessage(wsMsg); //回调给主进程
     //notifyClients(wsMsg);
     return {
@@ -630,9 +673,9 @@ if (isMainThread) {
       code: 0,
       data: {
         id: 0,
-        realName: "Console",
+        realName: defaultUsername,
         roles: ["super"],
-        username: "console",
+        username: defaultUsername,
       },
       error: null,
       message: "ok",
@@ -641,22 +684,17 @@ if (isMainThread) {
     res.send(jsonData);
   });
   router.post("/auth/refresh", (req, res) => {
-    const { accessToken } = req.body;
-    let payload = jwt.verify(accessToken, secretKey);
-    const username = payload.username;
-    const token = getToken({ username });
     const jsonData = {
-      code: 0,
-      data: {
-        status: 0,
-        data: token,
-        accessToken: token,
-      },
-      message: "ok",
+      code: -1,
+      data: null,
+      error: "登录认证过期，请重新登录后继续。",
+      message: "登录认证过期，请重新登录后继续。",
     };
-    res.send(jsonData);
+    res.sendStatus(401).send(jsonData);
   });
   router.post("/auth/logout", (req, res) => {
+    res.clearCookie("jwt");
+    delete req.headers.authorization;
     const jsonData = {
       code: 0,
       data: "",
@@ -674,6 +712,12 @@ if (isMainThread) {
       const token = getToken({ username });
       //console.log(token)
       res.header("Authoization", token);
+      res.cookie("jwt", token, {
+        maxAge: 3 * 24 * 60 * 60 * 1000, // Cookie有效时长（毫秒）
+        httpOnly: true, // 仅通过HTTP协议访问（前端不可访问）
+        secure: false, // 仅在HTTPS协议下传输
+        sameSite: "lax", // 防止CSRF攻击
+      });
       const jsonData = {
         code: 0,
         data: {

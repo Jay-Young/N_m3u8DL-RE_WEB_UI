@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  m3u8downloader:
+    image: aidenconsole:v1
+    container_name: m3u8downloader
+    ports:
+      - "3600:3600"
+    network_mode: bridge
+    privileged: true
+    restart: unless-stopped
+    volumes:
+      - /share/Multimedia/temp:/download
